@@ -1,0 +1,1 @@
+// Math: getGlobalIndex(player,step)
