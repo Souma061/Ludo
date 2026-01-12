@@ -1,5 +1,7 @@
 import { Star } from 'lucide-react';
+import { GLOBAL_PATH } from '../../constants/coordinates.ts';
 import { cn } from '../../utils/helpers.ts';
+import Token from './Token.tsx';
 const LudoBoard = () => {
   const getCellProps = (index: number) => {
     const row = Math.floor(index / 15);
@@ -17,22 +19,22 @@ const LudoBoard = () => {
     // --- 2. STARTING POINTS (Colored Safe Zones) ---
     // These are the entry points you identified:
 
-    // Red Start (Row 6, Col 1) - Index 91
+    // Red Start (Row 6, Col 1)
     if (row === 6 && col === 1) {
       className = "bg-red-500";
       content = <Star size={12} className="text-white" />;
     }
-    // Green Start (Row 1, Col 8) - Index 23 (You pointed this out!)
+    // Green Start (Row 1, Col 8)
     else if (row === 1 && col === 8) {
       className = "bg-green-500";
       content = <Star size={12} className="text-white" />;
     }
-    // Yellow Start (Row 8, Col 13) - Index 133 (You pointed this out!)
+    // Yellow Start (Row 8, Col 13)
     else if (row === 8 && col === 13) {
       className = "bg-yellow-400";
       content = <Star size={12} className="text-white" />;
     }
-    // Blue Start (Row 13, Col 6) - Index 201
+    // Blue Start (Row 13, Col 6)
     else if (row === 13 && col === 6) {
       className = "bg-blue-500";
       content = <Star size={12} className="text-white" />;
@@ -40,7 +42,7 @@ const LudoBoard = () => {
 
 
     // --- 3. GENERAL SAFE ZONES (White Tiles) ---
-    // These are the stars located 8 steps away from starts
+
     else if (
       (row === 2 && col === 6) ||  // Index 36  (Top Left)
       (row === 6 && col === 12) || // Index 102 (Top Right)
@@ -50,7 +52,7 @@ const LudoBoard = () => {
       content = <Star size={10} className="text-slate-400" />;
     }
 
-    // Optional: Add a subtle border to safe zones to make them pop
+
     if (content) {
       className += " border-2 border-slate-300";
     }
@@ -64,7 +66,7 @@ const LudoBoard = () => {
       <div className="relative bg-white border-2 border-black shadow-2xl">
 
         {/* This is the 15x15 Grid.
-           We use the custom 'grid-cols-15' and 'grid-rows-15' we added to tailwind.config
+        We use the custom 'grid-cols-15' and 'grid-rows-15' we added to tailwind.config
         */}
         <div
           className="grid grid-cols-15 grid-rows-15 w-[90vw] h-[90vw] max-w-[600px] max-h-[600px]"
@@ -91,8 +93,8 @@ const LudoBoard = () => {
         </div>
 
         {/* 2. The 4 Home Bases (Overlays)
-           We place these absolutely on top of the grid to cover the cells underneath.
-           Each base is 6x6 cells (40% width/height of the board).
+        We place these absolutely on top of the grid to cover the cells underneath.
+          Each base is 6x6 cells (40% width/height of the board).
         */}
 
         {/* RED BASE (Top Left) */}
@@ -102,6 +104,7 @@ const LudoBoard = () => {
               <span className="font-bold text-red-600">RED </span>
             </div>
           </div>
+
         </div>
 
         {/* GREEN BASE (Top Right) */}
@@ -111,6 +114,7 @@ const LudoBoard = () => {
               <span className="font-bold text-green-600">GREEN</span>
             </div>
           </div>
+
         </div>
 
         {/* BLUE BASE (Bottom Left) */}
@@ -120,6 +124,7 @@ const LudoBoard = () => {
               <span className="font-bold text-blue-600">BLUE</span>
             </div>
           </div>
+
         </div>
 
         {/* YELLOW BASE (Bottom Right) */}
@@ -129,7 +134,9 @@ const LudoBoard = () => {
               <span className="font-bold text-yellow-600">YELLOW</span>
             </div>
           </div>
+
         </div>
+
 
         {/* 3. The Center Victory Triangle
            Located in the exact middle (Row 7-9, Col 7-9)
@@ -140,6 +147,12 @@ const LudoBoard = () => {
             WIN
           </div>
         </div>
+
+
+        <Token color="RED" position={GLOBAL_PATH[0]} />
+        <Token color="GREEN" position={GLOBAL_PATH[13]} /> {/* Index 13 is the Green Start */}
+        <Token color="YELLOW" position={GLOBAL_PATH[26]} />
+        <Token color="BLUE" position={GLOBAL_PATH[39]} />
 
       </div>
     </div>
