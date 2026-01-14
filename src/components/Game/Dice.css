@@ -1,0 +1,159 @@
+/* Dice 3D styles and animations */
+
+.dice-scene {
+  perspective: 1000px;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dice-cube {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  transform-style: preserve-3d;
+}
+
+.dice-face {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #1a1a1a;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+  border: 2px solid #333;
+  backface-visibility: hidden;
+  box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.5),
+    inset 0 -2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Face positions */
+.face-1 {
+  transform: translateZ(40px);
+}
+
+.face-2 {
+  transform: rotateY(90deg) translateZ(40px);
+}
+
+.face-3 {
+  transform: rotateY(180deg) translateZ(40px);
+}
+
+.face-4 {
+  transform: rotateY(-90deg) translateZ(40px);
+}
+
+.face-5 {
+  transform: rotateX(90deg) translateZ(40px);
+}
+
+.face-6 {
+  transform: rotateX(-90deg) translateZ(40px);
+}
+
+/* Glow effect during rolling */
+@keyframes dice-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 10px rgba(66, 165, 245, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(66, 165, 245, 0.8),
+      0 0 60px rgba(33, 150, 243, 0.6);
+  }
+}
+
+.dice-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  animation: dice-glow 0.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Button styles */
+.dice-button {
+  position: relative;
+  padding: 12px 32px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s ease;
+  transform: scale(1);
+}
+
+.dice-button:not(:disabled):hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+}
+
+.dice-button:not(:disabled):active {
+  transform: scale(0.95);
+}
+
+.dice-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.dice-button span {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+/* Button glow during rolling */
+@keyframes button-glow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+}
+
+.dice-button-glow {
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(
+    circle,
+    rgba(59, 130, 246, 0.5) 0%,
+    transparent 70%
+  );
+  border-radius: 50px;
+  animation: button-glow 0.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Pulse animation for text */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

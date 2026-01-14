@@ -67,3 +67,18 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+.backface-hidden {
+  backface-visibility: hidden;
+}
+/* Utility for spacing faces */
+.translate-z-\[32px\] {
+  transform: translateZ(32px); /* Half of w-16 (64px) */
+}
+.rotate-y-90 { transform: rotateY(90deg) translateZ(32px); }
+.rotate-y-180 { transform: rotateY(180deg) translateZ(32px); }
+.rotate-y--90 { transform: rotateY(-90deg) translateZ(32px); }
+.rotate-x-90 { transform: rotateX(90deg) translateZ(32px); }
+.rotate-x--90 { transform: rotateX(-90deg) translateZ(32px); }
