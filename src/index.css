@@ -1,6 +1,8 @@
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap");
 @import "tailwindcss";
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Nunito", sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -77,8 +79,18 @@ button:focus-visible {
 .translate-z-\[32px\] {
   transform: translateZ(32px); /* Half of w-16 (64px) */
 }
-.rotate-y-90 { transform: rotateY(90deg) translateZ(32px); }
-.rotate-y-180 { transform: rotateY(180deg) translateZ(32px); }
-.rotate-y--90 { transform: rotateY(-90deg) translateZ(32px); }
-.rotate-x-90 { transform: rotateX(90deg) translateZ(32px); }
-.rotate-x--90 { transform: rotateX(-90deg) translateZ(32px); }
+.rotate-y-90 {
+  transform: rotateY(90deg) translateZ(32px);
+}
+.rotate-y-180 {
+  transform: rotateY(180deg) translateZ(32px);
+}
+.rotate-y--90 {
+  transform: rotateY(-90deg) translateZ(32px);
+}
+.rotate-x-90 {
+  transform: rotateX(90deg) translateZ(32px);
+}
+.rotate-x--90 {
+  transform: rotateX(-90deg) translateZ(32px);
+}

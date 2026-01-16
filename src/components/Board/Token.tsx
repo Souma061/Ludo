@@ -1,30 +1,47 @@
 // The 'Goti' or playing piece for each player
-import { motion } from 'framer-motion';
-import React from 'react';
-import type { Corrdinates } from '../../constants/coordinates.ts';
-
-
+import { motion } from "framer-motion";
+import React from "react";
+import type { Corrdinates } from "../../constants/coordinates.ts";
 
 interface TokenProps {
-  color: 'RED' | 'GREEN' | 'YELLOW' | 'BLUE';
+  color: "RED" | "GREEN" | "YELLOW" | "BLUE";
   position: Corrdinates;
   onClick?: () => void;
   isMovable?: boolean;
 }
 
+const Token: React.FC<TokenProps> = ({
+  color,
+  position,
+  onClick,
+  isMovable = false,
+}) => {
+  // Board wrapper has 12px padding and 1px gap between cells
+  // The effective grid area is 100% - padding adjustments
+  const boardPaddingPercent = (12 / 550) * 100; // 12px out of max 550px
+  const gapPercent = (1 / 550) * 100;
 
-const Token: React.FC<TokenProps> = ({ color, position, onClick, isMovable = false }) => {
-  // Adjust positioning for better alignment with grid
-  const cellSize = 100 / 15;
-  const top = `${(position.r * cellSize) + (cellSize * 0.15)}%`;
-  const left = `${(position.c * cellSize) + (cellSize * 0.15)}%`;
-  const size = `${cellSize * 0.7}%`;
+  // Adjusted cell size accounting for padding and gaps
+  const gridSize = 100 - boardPaddingPercent * 2; // Subtract padding from both sides
+  const cellSize = gridSize / 15;
+  const tokenSize = cellSize * 0.65;
 
-  const colorMap = {
-    RED: "#ef4444",
-    GREEN: "#22c55e",
-    YELLOW: "#eab308",
-    BLUE: "#3b82f6"
+  // Position accounting for board padding
+  const topOffset = boardPaddingPercent + gapPercent / 2;
+  const leftOffset = boardPaddingPercent + gapPercent / 2;
+
+  const top = `${topOffset + position.r * cellSize + cellSize / 2}%`;
+  const left = `${leftOffset + position.c * cellSize + cellSize / 2}%`;
+  const size = `${tokenSize}%`;
+
+  // 3D Marble Gradient Styles
+  const tokenStyles = {
+    RED: "bg-gradient-to-br from-red-400 via-red-600 to-red-900 shadow-[0_4px_8px_rgba(220,38,38,0.6)] border-red-300",
+    GREEN:
+      "bg-gradient-to-br from-green-400 via-green-600 to-green-900 shadow-[0_4px_8px_rgba(22,163,74,0.6)] border-green-300",
+    YELLOW:
+      "bg-gradient-to-br from-yellow-300 via-yellow-500 to-yellow-800 shadow-[0_4px_8px_rgba(234,179,8,0.6)] border-yellow-200",
+    BLUE: "bg-gradient-to-br from-blue-400 via-blue-600 to-blue-900 shadow-[0_4px_8px_rgba(37,99,235,0.6)] border-blue-300",
   };
 
   return (
@@ -32,29 +49,31 @@ const Token: React.FC<TokenProps> = ({ color, position, onClick, isMovable = fal
       layout
       initial={false}
       animate={{ top, left }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ type: "spring", stiffness: 300, damping: 25 }}
       onClick={isMovable ? onClick : undefined}
-      className={`absolute z-30 flex items-center justify-center ${isMovable ? 'cursor-pointer hover:z-40' : 'cursor-not-allowed'}`}
+      className={`absolute z-20 flex items-center justify-center ${isMovable ? "cursor-pointer hover:z-40" : "cursor-not-allowed"}`}
       style={{
         width: size,
         height: size,
-        borderRadius: "50%"
+        transform: "translate(-50%, -50%)",
       }}
     >
+      {/* The Marble Body */}
       <div
-        className="w-full h-full rounded-full border-2 border-white relative overflow-hidden transition-all duration-300"
-        style={{
-          backgroundColor: colorMap[color],
-          boxShadow: isMovable
-            ? '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1), 0 0 12px 2px rgba(255,255,255,0.4)'
-            : '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1)'
-        }}
+        className={`w-[85%] h-[85%] rounded-full border-2 ${tokenStyles[color]} relative overflow-hidden transition-all duration-300`}
       >
-        <div className="absolute top-1 left-1 w-[35%] h-[35%] bg-white opacity-25 rounded-full" />
-        <div className="absolute inset-0 rounded-full"
+        {/* The "Shine" (Reflection) */}
+        <div className="absolute top-[15%] left-[20%] w-[35%] h-[20%] bg-white opacity-40 rounded-full blur-[1px]" />
+
+        {/* Additional gradient overlay for depth */}
+        <div
+          className="absolute inset-0 rounded-full"
           style={{
-            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 60%)`
-          }} />
+            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 60%)`,
+          }}
+        />
+
+        {/* Movable pulse effect */}
         {isMovable && (
           <motion.div
             animate={{ scale: [1, 1.2, 1] }}
@@ -64,7 +83,7 @@ const Token: React.FC<TokenProps> = ({ color, position, onClick, isMovable = fal
         )}
       </div>
     </motion.div>
-  )
-}
+  );
+};
 
 export default Token;
