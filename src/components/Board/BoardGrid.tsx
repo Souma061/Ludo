@@ -19,19 +19,19 @@ const LudoBoard = () => {
     // --- 2. STARTING POINTS (Colored Safe Zones) ---
     if (row === 6 && col === 1) {
       className = "cell-red-start";
-      content = <Star size={14} className="text-white" />;
+      content = <Star size={12} className="text-white" />;
       isSpecial = true;
     } else if (row === 1 && col === 8) {
       className = "cell-green-start";
-      content = <Star size={14} className="text-white" />;
+      content = <Star size={12} className="text-white" />;
       isSpecial = true;
     } else if (row === 8 && col === 13) {
       className = "cell-yellow-start";
-      content = <Star size={14} className="text-white" />;
+      content = <Star size={12} className="text-white" />;
       isSpecial = true;
     } else if (row === 13 && col === 6) {
       className = "cell-blue-start";
-      content = <Star size={14} className="text-white" />;
+      content = <Star size={12} className="text-white" />;
       isSpecial = true;
     }
     // --- 3. GENERAL SAFE ZONES (Marked Tiles) ---
@@ -49,6 +49,9 @@ const LudoBoard = () => {
     if (isSpecial) {
       className += " border-2 border-slate-300";
     }
+
+    // Add responsive sizing to cell
+    className += " border-[0.5px] border-slate-400/50 w-full h-full flex items-center justify-center";
 
     return { className, content };
   };

@@ -85,11 +85,11 @@ export const useGameLogics = () => {
   };
 
   // --- ACTION: Roll Dice ---
-  const handleRollDice = useCallback(() => {
+  const handleRollDice = useCallback((value: number) => {
     setGameState(prev => {
       if (prev.gameStatus !== "PLAYING" || prev.diceValue !== null) return prev;
 
-      const diceValue = Math.floor(Math.random() * 6) + 1;
+      const diceValue = value;
       let newStreak = prev.sixesStreak;
 
       // Handle 3 Sixes in a row
