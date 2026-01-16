@@ -1,7 +1,7 @@
 // The 'Goti' or playing piece for each player
-import React from 'react'
-import {motion} from 'framer-motion'
-import type  {Corrdinates} from '../../constants/coordinates.ts';
+import { motion } from 'framer-motion';
+import React from 'react';
+import type { Corrdinates } from '../../constants/coordinates.ts';
 
 
 
@@ -12,34 +12,49 @@ interface TokenProps {
 }
 
 
-const Token: React.FC<TokenProps> = ({color,position,onClick}) => {
-  const top = `${(position.r * 100) / 15}%`;
-  const left = `${(position.c * 100) / 15}%`;
-  const size = `${100 / 15}%`;
+const Token: React.FC<TokenProps> = ({ color, position, onClick }) => {
+  // Adjust positioning for better alignment with grid
+  const cellSize = 100 / 15;
+  const top = `${(position.r * cellSize) + (cellSize * 0.15)}%`;
+  const left = `${(position.c * cellSize) + (cellSize * 0.15)}%`;
+  const size = `${cellSize * 0.7}%`;
 
   const colorMap = {
-    RED: "#ef4444",    // tailwind red-500
-    GREEN: "#22c55e",  // tailwind green-500
-    YELLOW: "#eab308", // tailwind yellow-500
-    BLUE: "#3b82f6"   // tailwind blue-500
+    RED: "#ef4444",
+    GREEN: "#22c55e",
+    YELLOW: "#eab308",
+    BLUE: "#3b82f6"
   };
+
   return (
     <motion.div
-    layout
-    initial={false}
-    animate={{ top, left }}
-    transition={{type:"spring",stiffness:300,damping:25}}
-    onClick={onClick}
-      className="absolute z-20 flex items-center justify-center cursor-pointer"
-      style={{ width: size, height: size, backgroundColor: colorMap[color], borderRadius: "50%" }}
+      layout
+      initial={false}
+      animate={{ top, left }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      onClick={onClick}
+      className="absolute z-30 flex items-center justify-center cursor-pointer hover:z-40"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: "50%"
+      }}
     >
       <div
-        className="w-[75%] h-[75%] rounded-full shadow-[0_4px_4px_rgba(0,0,0,0.3)] border-2 border-white relative"
-        style={{ backgroundColor: colorMap[color] }}
+        className="w-full h-full rounded-full border-2 border-white relative overflow-hidden"
+        style={{
+          backgroundColor: colorMap[color],
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1)'
+        }}
       >
-        <div className="absolute top-1 left-1 w-[40%] h-[40%] bg-white opacity-30 rounded-full" />
+        <div className="absolute top-1 left-1 w-[35%] h-[35%] bg-white opacity-25 rounded-full" />
+        <div className="absolute inset-0 rounded-full"
+          style={{
+            background: `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, transparent 60%)`
+          }} />
       </div>
     </motion.div>
   )
 }
-export default Token
+
+export default Token;

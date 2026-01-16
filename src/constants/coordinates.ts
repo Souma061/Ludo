@@ -40,3 +40,10 @@ export const BASE_POSITIONS = {
   YELLOW: [{ r: 11, c: 11 }, { r: 11, c: 12 }, { r: 12, c: 11 }, { r: 12, c: 12 }],
   BLUE: [{ r: 11, c: 2 }, { r: 11, c: 3 }, { r: 12, c: 2 }, { r: 12, c: 3 }]
 };
+
+export const START_INDEX = {
+  RED: 0,
+  GREEN: 13,
+  YELLOW: 26,
+  BLUE: 39
+};
