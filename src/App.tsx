@@ -109,32 +109,33 @@ function App() {
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             <div className="board-wrapper-main">
-              <LudoBoard />
-              {/* Tokens Layer */}
-              {(["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).map(
-                (color) => {
-                  const movableTokenIds = getMovableTokenIds(
-                    color,
-                    gameState.diceValue,
-                  );
-                  return gameState.tokens[color].map((token) => (
-                    <Token
-                      key={`${color}-${token.id}`}
-                      color={color}
-                      position={getVisualPosition(
-                        color,
-                        token.id,
-                        token.position,
-                      )}
-                      onClick={() => moveToken(token.id)}
-                      isMovable={
-                        color === gameState.currentTurn &&
-                        movableTokenIds.includes(token.id)
-                      }
-                    />
-                  ));
-                },
-              )}
+              {/* Pass tokens as children inside LudoBoard */}
+              <LudoBoard>
+                {(["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).map(
+                  (color) => {
+                    const movableTokenIds = getMovableTokenIds(
+                      color,
+                      gameState.diceValue,
+                    );
+                    return gameState.tokens[color].map((token) => (
+                      <Token
+                        key={`${color}-${token.id}`}
+                        color={color}
+                        position={getVisualPosition(
+                          color,
+                          token.id,
+                          token.position,
+                        )}
+                        onClick={() => moveToken(token.id)}
+                        isMovable={
+                          color === gameState.currentTurn &&
+                          movableTokenIds.includes(token.id)
+                        }
+                      />
+                    ));
+                  },
+                )}
+              </LudoBoard>
             </div>
           </motion.div>
 

@@ -1,8 +1,13 @@
-import { Crown, Star } from 'lucide-react';
-import { cn } from '../../utils/helpers.ts';
-import './BoardGrid.css';
+import { Crown, Star } from "lucide-react";
+import React from "react";
+import { cn } from "../../utils/helpers.ts";
+import "./BoardGrid.css";
 
-const LudoBoard = () => {
+interface BoardGridProps {
+  children?: React.ReactNode;
+}
+
+const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
   const getCellProps = (index: number) => {
     const row = Math.floor(index / 15);
     const col = index % 15;
@@ -51,7 +56,8 @@ const LudoBoard = () => {
     }
 
     // Add responsive sizing to cell
-    className += " border-[0.5px] border-slate-400/50 w-full h-full flex items-center justify-center";
+    className +=
+      " border-[0.5px] border-slate-400/50 w-full h-full flex items-center justify-center";
 
     return { className, content };
   };
@@ -60,70 +66,76 @@ const LudoBoard = () => {
     <div className="board-container">
       {/* Main Board */}
       <div className="board-wrapper">
-        {/* Grid Background */}
-        <div className="board-grid">
-          {Array.from({ length: 225 }).map((_, index) => {
-            const { className, content } = getCellProps(index);
-            return (
-              <div key={index} className={cn("board-cell", className)}>
-                {content}
+        {/* Inner Relative Container - holds grid AND tokens in same coordinate system */}
+        <div className="relative w-full h-full">
+          {/* Grid Background */}
+          <div className="board-grid">
+            {Array.from({ length: 225 }).map((_, index) => {
+              const { className, content } = getCellProps(index);
+              return (
+                <div key={index} className={cn("board-cell", className)}>
+                  {content}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Base Zones */}
+          {/* RED BASE */}
+          <div className="base-zone base-red">
+            <div className="base-content">
+              <div className="base-title">🔴 RED</div>
+              <div className="base-tokens">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="base-slot"></div>
+                ))}
               </div>
-            );
-          })}
-        </div>
-
-        {/* Base Zones */}
-        {/* RED BASE */}
-        <div className="base-zone base-red">
-          <div className="base-content">
-            <div className="base-title">🔴 RED</div>
-            <div className="base-tokens">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="base-slot"></div>
-              ))}
             </div>
           </div>
-        </div>
 
-        {/* GREEN BASE */}
-        <div className="base-zone base-green">
-          <div className="base-content">
-            <div className="base-title">🟢 GREEN</div>
-            <div className="base-tokens">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="base-slot"></div>
-              ))}
+          {/* GREEN BASE */}
+          <div className="base-zone base-green">
+            <div className="base-content">
+              <div className="base-title">🟢 GREEN</div>
+              <div className="base-tokens">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="base-slot"></div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* BLUE BASE */}
-        <div className="base-zone base-blue">
-          <div className="base-content">
-            <div className="base-title">🔵 BLUE</div>
-            <div className="base-tokens">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="base-slot"></div>
-              ))}
+          {/* BLUE BASE */}
+          <div className="base-zone base-blue">
+            <div className="base-content">
+              <div className="base-title">🔵 BLUE</div>
+              <div className="base-tokens">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="base-slot"></div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* YELLOW BASE */}
-        <div className="base-zone base-yellow">
-          <div className="base-content">
-            <div className="base-title">🟡 YELLOW</div>
-            <div className="base-tokens">
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} className="base-slot"></div>
-              ))}
+          {/* YELLOW BASE */}
+          <div className="base-zone base-yellow">
+            <div className="base-content">
+              <div className="base-title">🟡 YELLOW</div>
+              <div className="base-tokens">
+                {[0, 1, 2, 3].map((i) => (
+                  <div key={i} className="base-slot"></div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Center Victory Zone */}
-        <div className="victory-zone">
-          <Crown size={24} className="victory-icon" />
+          {/* Center Victory Zone */}
+          <div className="victory-zone">
+            <Crown size={24} className="victory-icon" />
+          </div>
+
+          {/* Tokens rendered here share the same coordinate space as the grid */}
+          {children}
         </div>
       </div>
     </div>

@@ -16,22 +16,13 @@ const Token: React.FC<TokenProps> = ({
   onClick,
   isMovable = false,
 }) => {
-  // Board wrapper has 12px padding and 1px gap between cells
-  // The effective grid area is 100% - padding adjustments
-  const boardPaddingPercent = (12 / 550) * 100; // 12px out of max 550px
-  const gapPercent = (1 / 550) * 100;
-
-  // Adjusted cell size accounting for padding and gaps
-  const gridSize = 100 - boardPaddingPercent * 2; // Subtract padding from both sides
-  const cellSize = gridSize / 15;
+  // Simple calculation - tokens now share the same coordinate system as the grid
+  const cellSize = 100 / 15;
   const tokenSize = cellSize * 0.65;
 
-  // Position accounting for board padding
-  const topOffset = boardPaddingPercent + gapPercent / 2;
-  const leftOffset = boardPaddingPercent + gapPercent / 2;
-
-  const top = `${topOffset + position.r * cellSize + cellSize / 2}%`;
-  const left = `${leftOffset + position.c * cellSize + cellSize / 2}%`;
+  // Position at cell center
+  const top = `${position.r * cellSize + cellSize / 2}%`;
+  const left = `${position.c * cellSize + cellSize / 2}%`;
   const size = `${tokenSize}%`;
 
   // 3D Marble Gradient Styles
