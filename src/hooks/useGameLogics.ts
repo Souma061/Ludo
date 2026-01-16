@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { START_INDEX } from "../constants/coordinates";
-import { isSafeZone } from "../constants/rules";
+import { BOARD_PATH_LENGTH, FINISH_LINE, HOME_STRETCH_START, isSafeZone, MAX_SIXES_STREAK } from "../constants/rules";
 import type { GameStatus, PlayerColor, TokenState } from "../types";
 
 export interface PlayerStats {
@@ -23,20 +23,42 @@ interface LegacyGameState {
 }
 
 export const useGameLogics = () => {
-  const [gameState, setGameState] = useState<LegacyGameState>({
-    currentTurn: "RED",
-    diceValue: null,
-    tokens: {
-      RED: [...INITIAL_TOKENS],
-      GREEN: [...INITIAL_TOKENS],
-      YELLOW: [...INITIAL_TOKENS],
-      BLUE: [...INITIAL_TOKENS]
-    },
-    sixesStreak: 0,
-    winners: [],
-    gameStatus: "PLAYING",
-    lastMoveTime: 0,
+  const [gameState, setGameState] = useState<LegacyGameState>(() => {
+    // Try to load game state from localStorage
+    try {
+      const savedState = localStorage.getItem('ludoGameState');
+      if (savedState) {
+        return JSON.parse(savedState);
+      }
+    } catch (error) {
+      console.warn('Failed to load saved game state:', error);
+    }
+
+    // Default initial state
+    return {
+      currentTurn: "RED",
+      diceValue: null,
+      tokens: {
+        RED: [...INITIAL_TOKENS],
+        GREEN: [...INITIAL_TOKENS],
+        YELLOW: [...INITIAL_TOKENS],
+        BLUE: [...INITIAL_TOKENS]
+      },
+      sixesStreak: 0,
+      winners: [],
+      gameStatus: "PLAYING",
+      lastMoveTime: 0,
+    };
   });
+
+  // Save game state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('ludoGameState', JSON.stringify(gameState));
+    } catch (error) {
+      console.warn('Failed to save game state:', error);
+    }
+  }, [gameState]);
 
   // --- HELPER: Switch Turn ---
   const switchTurn = useCallback(() => {
@@ -73,7 +95,7 @@ export const useGameLogics = () => {
       // Handle 3 Sixes in a row
       if (diceValue === 6) {
         newStreak += 1;
-        if (newStreak === 3) {
+        if (newStreak === MAX_SIXES_STREAK) {
           setTimeout(switchTurn, 1000); // Auto skip turn
           return {
             ...prev,
@@ -104,7 +126,7 @@ export const useGameLogics = () => {
       );
 
       // If player cannot move any token, wait 1s and pass turn
-      if (!canMove && gameState.sixesStreak < 3) {
+      if (!canMove && gameState.sixesStreak < MAX_SIXES_STREAK) {
         const timeout = setTimeout(switchTurn, 1000);
         return () => clearTimeout(timeout);
       }
@@ -140,9 +162,9 @@ export const useGameLogics = () => {
           return prev;
         }
       } else if (newStatus === "ACTIVE") {
-        if (newPosition + dice <= 57) {
+        if (newPosition + dice <= FINISH_LINE) {
           newPosition += dice;
-          if (newPosition === 57) newStatus = "FINISHED";
+          if (newPosition === FINISH_LINE) newStatus = "FINISHED";
         } else {
           return prev;
         }
@@ -152,9 +174,9 @@ export const useGameLogics = () => {
 
       // 2. Collision / Killing Logic
       let globalPos = -1;
-      if (newStatus === "ACTIVE" && newPosition < 51) {
+      if (newStatus === "ACTIVE" && newPosition < HOME_STRETCH_START) {
         const offset = START_INDEX[currentColor];
-        globalPos = (offset + newPosition) % 52;
+        globalPos = (offset + newPosition) % BOARD_PATH_LENGTH;
       }
 
       let opponentKilled = false;
@@ -167,9 +189,9 @@ export const useGameLogics = () => {
           const oppTokens = [...newTokens[oppColor]];
           // Find tokens at the exact same spot
           const victims = oppTokens.filter(t => {
-            if (t.status !== "ACTIVE" || t.position >= 51) return false;
+            if (t.status !== "ACTIVE" || t.position >= HOME_STRETCH_START) return false;
             const oppOffset = START_INDEX[oppColor];
-            const oppGlobal = (oppOffset + t.position) % 52;
+            const oppGlobal = (oppOffset + t.position) % BOARD_PATH_LENGTH;
             return oppGlobal === globalPos;
           });
 
@@ -216,11 +238,36 @@ export const useGameLogics = () => {
         currentTurn: nextTurn,
         diceValue: null, // Reset dice
         sixesStreak: nextStreak,
-        gameStatus: winners.length >= 3 ? "FINISHED" : "PLAYING",
+        gameStatus: winners.length === 4 ? "FINISHED" : "PLAYING",
         lastMoveTime: Date.now()
       };
     });
   }, []);
+
+  const isTokenMovable = useCallback((tokenId: number, color: PlayerColor, diceValue: number | null) => {
+    if (diceValue === null) return false;
+    const token = gameState.tokens[color].find(t => t.id === tokenId);
+    if (!token || token.status === "FINISHED") return false;
+
+    // Base tokens only move with 6
+    if (token.status === "BASE" && diceValue !== 6) return false;
+
+    // Can't move if would overshoot finish line
+    if (token.status === "ACTIVE") {
+      const newPos = token.position + diceValue;
+      if (newPos > FINISH_LINE) return false;
+    }
+
+    return true;
+  }, [gameState.tokens]);
+
+  const getMovableTokenIds = useCallback((color: PlayerColor, diceValue: number | null): number[] => {
+    if (diceValue === null) return [];
+    const tokens = gameState.tokens[color];
+    return tokens
+      .filter(t => isTokenMovable(t.id, color, diceValue))
+      .map(t => t.id);
+  }, [gameState.tokens, isTokenMovable]);
 
   const getPlayerStats = useCallback((color: PlayerColor): PlayerStats => {
     const tokens = gameState.tokens[color];
@@ -249,5 +296,5 @@ export const useGameLogics = () => {
     });
   }, []);
 
-  return { gameState, handleRollDice, moveToken, getPlayerStats, resetGame };
+  return { gameState, handleRollDice, moveToken, getPlayerStats, resetGame, isTokenMovable, getMovableTokenIds };
 };

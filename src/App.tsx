@@ -10,7 +10,7 @@ import { useGameLogics } from './hooks/useGameLogics'
 import type { PlayerColor } from './types/index'
 
 function App() {
-  const { gameState, handleRollDice, moveToken, getPlayerStats, resetGame } = useGameLogics();
+  const { gameState, handleRollDice, moveToken, getPlayerStats, resetGame, getMovableTokenIds } = useGameLogics();
   const [showWinner, setShowWinner] = useState(false);
 
   useEffect(() => {
@@ -139,16 +139,18 @@ function App() {
             <div className='board-wrapper-main'>
               <LudoBoard />
               {/* Tokens Layer */}
-              {(['RED', 'GREEN', 'YELLOW', 'BLUE'] as PlayerColor[]).map((color) =>
-                gameState.tokens[color].map((token) => (
+              {(['RED', 'GREEN', 'YELLOW', 'BLUE'] as PlayerColor[]).map((color) => {
+                const movableTokenIds = getMovableTokenIds(color, gameState.diceValue);
+                return gameState.tokens[color].map((token) => (
                   <Token
                     key={`${color}-${token.id}`}
                     color={color}
                     position={getVisualPosition(color, token.id, token.position)}
                     onClick={() => moveToken(token.id)}
+                    isMovable={color === gameState.currentTurn && movableTokenIds.includes(token.id)}
                   />
-                ))
-              )}
+                ));
+              })}
             </div>
           </motion.div>
 
@@ -178,6 +180,7 @@ function App() {
               <Dice
                 onRoll={handleRollDice}
                 disabled={gameState.diceValue !== null || gameState.gameStatus !== 'PLAYING'}
+                showCube={gameState.diceValue === null}
               />
             </div>
 
