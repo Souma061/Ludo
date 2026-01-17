@@ -45,7 +45,7 @@ A modern, feature-rich digital implementation of the classic Indian Ludo board g
 
 - ⚛️ **React Hooks** - Modern functional components
 - 🎭 **Framer Motion** - Smooth, performant animations
-- 📱 **Responsive Design** - Works on desktop and mobile
+- 📱 **Responsive Design** - Perfect fit on ALL screen sizes, **no scrolling** required!
 - 🎯 **TypeScript** - Full type safety
 - 🚀 **Optimized Build** - Production-ready bundle
 
@@ -375,7 +375,6 @@ const tokenStyles = {
 - Minimax for decision making
 - Heuristics: token safety, capture opportunities, home stretch priority
 
-
 #### 6. **Game Statistics & Analytics**
 
 - Track wins/losses per player
@@ -421,8 +420,6 @@ const tokenStyles = {
 - **High Contrast Mode**: For visual impairments
 - **Colorblind Mode**: Alternative color schemes
 - **Text Size Options**: Adjustable font sizes
-
-
 
 #### 12. **Social Features**
 

@@ -35,3 +35,16 @@ export interface GameContextType {
   moveToken: (playerId: number, tokenId: number) => void;
   resetGame: () => void;
 }
+
+export interface Player {
+  id:number;
+  name:string;
+  color:PlayerColor;
+  isHuman:boolean;
+}
+
+
+export interface GameSetup {
+  players: Player[];
+  mode: 'LOCAL' | 'ONLINE' | 'COMPUTER';
+}

@@ -1,13 +1,15 @@
 import { Crown, Star } from "lucide-react";
 import React from "react";
+import type { PlayerColor } from "../../types";
 import { cn } from "../../utils/helpers.ts";
 import "./BoardGrid.css";
 
 interface BoardGridProps {
   children?: React.ReactNode;
+  currentTurn?: PlayerColor;
 }
 
-const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
+const LudoBoard: React.FC<BoardGridProps> = ({ children, currentTurn }) => {
   const getCellProps = (index: number) => {
     const row = Math.floor(index / 15);
     const col = index % 15;
@@ -82,7 +84,12 @@ const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
 
           {/* Base Zones */}
           {/* RED BASE */}
-          <div className="base-zone base-red">
+          <div
+            className={cn(
+              "base-zone base-red",
+              currentTurn === "RED" && "base-glow",
+            )}
+          >
             <div className="base-content">
               <div className="base-title">🔴 RED</div>
               <div className="base-tokens">
@@ -94,7 +101,12 @@ const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
           </div>
 
           {/* GREEN BASE */}
-          <div className="base-zone base-green">
+          <div
+            className={cn(
+              "base-zone base-green",
+              currentTurn === "GREEN" && "base-glow",
+            )}
+          >
             <div className="base-content">
               <div className="base-title">🟢 GREEN</div>
               <div className="base-tokens">
@@ -106,7 +118,12 @@ const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
           </div>
 
           {/* BLUE BASE */}
-          <div className="base-zone base-blue">
+          <div
+            className={cn(
+              "base-zone base-blue",
+              currentTurn === "BLUE" && "base-glow",
+            )}
+          >
             <div className="base-content">
               <div className="base-title">🔵 BLUE</div>
               <div className="base-tokens">
@@ -118,7 +135,12 @@ const LudoBoard: React.FC<BoardGridProps> = ({ children }) => {
           </div>
 
           {/* YELLOW BASE */}
-          <div className="base-zone base-yellow">
+          <div
+            className={cn(
+              "base-zone base-yellow",
+              currentTurn === "YELLOW" && "base-glow",
+            )}
+          >
             <div className="base-content">
               <div className="base-title">🟡 YELLOW</div>
               <div className="base-tokens">

@@ -1,6 +1,6 @@
 // The 'Goti' or playing piece for each player
-import { motion } from "framer-motion";
-import React from "react";
+import { motion, useAnimation } from "framer-motion";
+import React, { useEffect, useRef } from "react";
 import type { Corrdinates } from "../../constants/coordinates.ts";
 
 interface TokenProps {
@@ -18,12 +18,36 @@ const Token: React.FC<TokenProps> = ({
 }) => {
   // Simple calculation - tokens now share the same coordinate system as the grid
   const cellSize = 100 / 15;
-  const tokenSize = cellSize * 0.65;
+  const tokenSize = cellSize * 0.7; // 70% of cell size for better fit
 
   // Position at cell center
   const top = `${position.r * cellSize + cellSize / 2}%`;
   const left = `${position.c * cellSize + cellSize / 2}%`;
   const size = `${tokenSize}%`;
+
+  // Track previous position for animation
+  const prevPosition = useRef(position);
+  const controls = useAnimation();
+
+  // Animate bounce when position changes
+  useEffect(() => {
+    const positionChanged =
+      prevPosition.current.r !== position.r ||
+      prevPosition.current.c !== position.c;
+
+    if (positionChanged) {
+      // Trigger bounce animation
+      controls.start({
+        y: [0, -15, 0], // Bounce up and down
+        transition: {
+          duration: 0.3,
+          ease: "easeOut",
+        },
+      });
+    }
+
+    prevPosition.current = position;
+  }, [position, controls]);
 
   // 3D Marble Gradient Styles
   const tokenStyles = {
@@ -41,8 +65,8 @@ const Token: React.FC<TokenProps> = ({
       initial={false}
       animate={{ top, left }}
       transition={{
-        duration: 0.2,
-        ease: "easeInOut",
+        duration: 0.25,
+        ease: "linear",
       }}
       onClick={isMovable ? onClick : undefined}
       className={`absolute z-20 flex items-center justify-center ${isMovable ? "cursor-pointer hover:z-40" : "cursor-not-allowed"}`}
@@ -54,14 +78,8 @@ const Token: React.FC<TokenProps> = ({
     >
       {/* The Marble Body with bounce animation */}
       <motion.div
-        animate={{
-          y: [0, -8, 0], // Bounce up and down
-        }}
-        transition={{
-          duration: 0.2,
-          ease: "easeOut",
-        }}
-        className={`w-[85%] h-[85%] rounded-full border-2 ${tokenStyles[color]} relative overflow-hidden transition-all duration-300`}
+        animate={controls}
+        className={`w-[90%] h-[90%] rounded-full border-2 ${tokenStyles[color]} relative overflow-hidden transition-all duration-300`}
       >
         {/* The "Shine" (Reflection) */}
         <div className="absolute top-[15%] left-[20%] w-[35%] h-[20%] bg-white opacity-40 rounded-full blur-[1px]" />

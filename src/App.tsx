@@ -10,7 +10,7 @@ import {
   BASE_POSITIONS,
   GLOBAL_PATH,
   HOME_PATHS,
-  START_INDEX,
+  START_INDEX
 } from "./constants/coordinates.ts";
 import { useGameLogics } from "./hooks/useGameLogics";
 import { useSound } from "./hooks/useSound";
@@ -29,6 +29,9 @@ function App() {
 
   // Sound system
   const { playSound, isMuted, toggleMute, volume, setVolume } = useSound();
+
+  // Hamburger menu state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Track previous values using refs to avoid cascading renders
   const prevDiceValueRef = useRef<number | null>(null);
@@ -111,11 +114,18 @@ function App() {
     if (logicalPos === -1) {
       return BASE_POSITIONS[color][tokenIndex];
     }
-    if (logicalPos >= 51 && logicalPos < 57) {
+    // Home stretch: positions 51-55 (5 colored boxes)
+    if (logicalPos >= 51 && logicalPos < 56) {
       const homeIndex = logicalPos - 51;
-      return HOME_PATHS[color][homeIndex];
+      // Safety check for array bounds
+      if (homeIndex < HOME_PATHS[color].length) {
+        return HOME_PATHS[color][homeIndex];
+      }
+      // Fallback to center if index out of bounds
+      return { r: 7, c: 7 };
     }
-    if (logicalPos === 57) {
+    // Center victory position 56 (or any position >= 56 for safety)
+    if (logicalPos >= 56) {
       return { r: 7, c: 7 };
     }
     const offset = START_INDEX[color];
@@ -189,7 +199,7 @@ function App() {
           >
             <div className="board-wrapper-main">
               {/* Pass tokens as children inside LudoBoard */}
-              <LudoBoard>
+              <LudoBoard currentTurn={gameState.currentTurn}>
                 {(["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).map(
                   (color) => {
                     const movableTokenIds = getMovableTokenIds(
@@ -218,14 +228,24 @@ function App() {
             </div>
           </motion.div>
 
-          {/* Right Sidebar - Stats and Controls */}
-          <div className="right-sidebar">
-            {/* Left Sidebar - Player Stats */}
+          {/* Hamburger Menu Button */}
+          <button
+            className={`hamburger-button ${isMenuOpen ? "open" : ""}`}
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
+
+          {/* Slide-in Stats Panel */}
+          <div className={`stats-panel-wrapper ${isMenuOpen ? "open" : ""}`}>
             <motion.div
               className="stats-panel"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
             >
               <div className="stats-header">
                 <h2 className="stats-title">Players</h2>
@@ -281,99 +301,97 @@ function App() {
                 )}
               </div>
             </motion.div>
-
-            {/* Right Sidebar - Controls */}
-            <motion.div
-              className="control-panel"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              {/* Dice Display */}
-              <div className="control-section">
-                <h3 className="control-title">Current Roll</h3>
-                <motion.div
-                  className="dice-display"
-                  key={gameState.diceValue}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <span className="dice-value">
-                    {gameState.diceValue ?? "—"}
-                  </span>
-                </motion.div>
-              </div>
-
-              {/* Dice Component */}
-              <div className="control-section">
-                <Dice
-                  onRoll={handleRollDice}
-                  disabled={
-                    gameState.diceValue !== null ||
-                    gameState.gameStatus !== "PLAYING"
-                  }
-                  showCube={gameState.diceValue === null}
-                />
-              </div>
-
-              {/* Game Status */}
-              <div className="control-section">
-                <div className="status-info">
-                  {gameState.diceValue ? (
-                    <motion.p
-                      className="status-text"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      ✋ Select a token to move
-                    </motion.p>
-                  ) : (
-                    <p className="status-text">
-                      🎲 Waiting for {gameState.currentTurn} to roll
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {/* Winners List */}
-              {gameState.winners.length > 0 && (
-                <motion.div
-                  className="winners-list"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <h4 className="winners-title">🏆 Leaderboard</h4>
-                  {gameState.winners.map((winner, index) => (
-                    <motion.div
-                      key={winner}
-                      className="winner-item"
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                    >
-                      <span className="winner-rank">#{index + 1}</span>
-                      <span className="winner-name">
-                        {getPlayerLabel(winner)}
-                      </span>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-
-              {/* Reset Button */}
-              {gameState.gameStatus === "FINISHED" && (
-                <motion.button
-                  className="reset-btn"
-                  onClick={resetGame}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  🔄 New Game
-                </motion.button>
-              )}
-            </motion.div>
           </div>
+
+          {/* Right Sidebar - Controls */}
+          <motion.div
+            className="control-panel"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            {/* Dice Display */}
+            <div className="control-section">
+              <h3 className="control-title">Current Roll</h3>
+              <motion.div
+                className="dice-display"
+                key={gameState.diceValue}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <span className="dice-value">{gameState.diceValue ?? "—"}</span>
+              </motion.div>
+            </div>
+
+            {/* Dice Component */}
+            <div className="control-section">
+              <Dice
+                onRoll={handleRollDice}
+                disabled={
+                  gameState.diceValue !== null ||
+                  gameState.gameStatus !== "PLAYING"
+                }
+                showCube={gameState.diceValue === null}
+              />
+            </div>
+
+            {/* Game Status */}
+            <div className="control-section">
+              <div className="status-info">
+                {gameState.diceValue ? (
+                  <motion.p
+                    className="status-text"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    ✋ Select a token to move
+                  </motion.p>
+                ) : (
+                  <p className="status-text">
+                    🎲 Waiting for {gameState.currentTurn} to roll
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Winners List */}
+            {gameState.winners.length > 0 && (
+              <motion.div
+                className="winners-list"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h4 className="winners-title">🏆 Leaderboard</h4>
+                {gameState.winners.map((winner, index) => (
+                  <motion.div
+                    key={winner}
+                    className="winner-item"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <span className="winner-rank">#{index + 1}</span>
+                    <span className="winner-name">
+                      {getPlayerLabel(winner)}
+                    </span>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* Reset Button */}
+            {gameState.gameStatus === "FINISHED" && (
+              <motion.button
+                className="reset-btn"
+                onClick={resetGame}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                🔄 New Game
+              </motion.button>
+            )}
+          </motion.div>
         </div>
       </div>
 
