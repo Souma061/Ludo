@@ -10,7 +10,7 @@ import {
   BASE_POSITIONS,
   GLOBAL_PATH,
   HOME_PATHS,
-  START_INDEX
+  START_INDEX,
 } from "./constants/coordinates.ts";
 import { useGameLogics } from "./hooks/useGameLogics";
 import { useSound } from "./hooks/useSound";
