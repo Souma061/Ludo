@@ -40,7 +40,10 @@ const Token: React.FC<TokenProps> = ({
       layout
       initial={false}
       animate={{ top, left }}
-      transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      transition={{
+        duration: 0.2,
+        ease: "easeInOut",
+      }}
       onClick={isMovable ? onClick : undefined}
       className={`absolute z-20 flex items-center justify-center ${isMovable ? "cursor-pointer hover:z-40" : "cursor-not-allowed"}`}
       style={{
@@ -49,8 +52,15 @@ const Token: React.FC<TokenProps> = ({
         transform: "translate(-50%, -50%)",
       }}
     >
-      {/* The Marble Body */}
-      <div
+      {/* The Marble Body with bounce animation */}
+      <motion.div
+        animate={{
+          y: [0, -8, 0], // Bounce up and down
+        }}
+        transition={{
+          duration: 0.2,
+          ease: "easeOut",
+        }}
         className={`w-[85%] h-[85%] rounded-full border-2 ${tokenStyles[color]} relative overflow-hidden transition-all duration-300`}
       >
         {/* The "Shine" (Reflection) */}
@@ -72,7 +82,7 @@ const Token: React.FC<TokenProps> = ({
             className="absolute inset-0 rounded-full border border-white opacity-60"
           />
         )}
-      </div>
+      </motion.div>
     </motion.div>
   );
 };

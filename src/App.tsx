@@ -1,10 +1,11 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import LudoBoard from "./components/Board/BoardGrid";
 import Token from "./components/Board/Token";
 import Dice from "./components/Game/Dice";
 import WinnerModal from "./components/Game/WinnerModal";
+import SoundControls from "./components/UI/SoundControls";
 import {
   BASE_POSITIONS,
   GLOBAL_PATH,
@@ -12,6 +13,7 @@ import {
   START_INDEX,
 } from "./constants/coordinates.ts";
 import { useGameLogics } from "./hooks/useGameLogics";
+import { useSound } from "./hooks/useSound";
 import type { PlayerColor } from "./types/index";
 
 function App() {
@@ -24,6 +26,75 @@ function App() {
     getMovableTokenIds,
   } = useGameLogics();
   const [showWinner, setShowWinner] = useState(false);
+
+  // Sound system
+  const { playSound, isMuted, toggleMute, volume, setVolume } = useSound();
+
+  // Track previous values using refs to avoid cascading renders
+  const prevDiceValueRef = useRef<number | null>(null);
+  const prevWinnersCountRef = useRef(0);
+  const prevTurnRef = useRef<PlayerColor>(gameState.currentTurn);
+
+  // Play dice roll sound
+  useEffect(() => {
+    if (
+      gameState.diceValue !== null &&
+      gameState.diceValue !== prevDiceValueRef.current
+    ) {
+      playSound("diceRoll");
+      prevDiceValueRef.current = gameState.diceValue;
+    }
+  }, [gameState.diceValue, playSound]);
+
+  // Play turn change sound
+  useEffect(() => {
+    if (gameState.currentTurn !== prevTurnRef.current) {
+      playSound("turnChange");
+      prevTurnRef.current = gameState.currentTurn;
+    }
+  }, [gameState.currentTurn, playSound]);
+
+  // Play winner sound
+  useEffect(() => {
+    if (gameState.winners.length > prevWinnersCountRef.current) {
+      playSound("playerWin");
+      prevWinnersCountRef.current = gameState.winners.length;
+    }
+  }, [gameState.winners.length, playSound]);
+
+  // Wrapper to play sound on token move (wrapped in useCallback)
+  const handleTokenMove = useCallback(
+    (tokenId: number) => {
+      playSound("tokenMove");
+      moveToken(tokenId);
+    },
+    [playSound, moveToken],
+  );
+
+  // Auto-move when only one token is movable (UX improvement)
+  useEffect(() => {
+    if (gameState.diceValue !== null && gameState.gameStatus === "PLAYING") {
+      const movableTokenIds = getMovableTokenIds(
+        gameState.currentTurn,
+        gameState.diceValue,
+      );
+
+      // If exactly one token can move, auto-move it after a short delay
+      if (movableTokenIds.length === 1) {
+        const autoMoveTimer = setTimeout(() => {
+          handleTokenMove(movableTokenIds[0]);
+        }, 400); // Small delay for better UX (let user see the dice result)
+
+        return () => clearTimeout(autoMoveTimer);
+      }
+    }
+  }, [
+    gameState.diceValue,
+    gameState.currentTurn,
+    gameState.gameStatus,
+    getMovableTokenIds,
+    handleTokenMove,
+  ]);
 
   useEffect(() => {
     if (gameState.winners.length > 0 && !showWinner) {
@@ -81,6 +152,14 @@ function App() {
 
   return (
     <div className="app-container">
+      {/* Sound Controls */}
+      <SoundControls
+        isMuted={isMuted}
+        volume={volume}
+        onToggleMute={toggleMute}
+        onVolumeChange={setVolume}
+      />
+
       {/* Background Gradient */}
       <div className="app-background"></div>
 
@@ -126,7 +205,7 @@ function App() {
                           token.id,
                           token.position,
                         )}
-                        onClick={() => moveToken(token.id)}
+                        onClick={() => handleTokenMove(token.id)}
                         isMovable={
                           color === gameState.currentTurn &&
                           movableTokenIds.includes(token.id)
