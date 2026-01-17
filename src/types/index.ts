@@ -35,15 +35,3 @@ export interface GameContextType {
   moveToken: (playerId: number, tokenId: number) => void;
   resetGame: () => void;
 }
-
-// Default export for compatibility
-const types = {
-  PlayerColor,
-  GameStatus,
-  TokenState,
-  Player,
-  GameState,
-  GameContextType
-};
-
-export default types;
