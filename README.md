@@ -533,7 +533,8 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 👥 Authors
 
-- **Your Name** - Initial work and implementation
+ - **Soumabrata Ghosh** – Game logic, UI, and system design
+
 
 ---
 
