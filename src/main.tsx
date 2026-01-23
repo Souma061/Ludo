@@ -1,10 +1,19 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import App from "./App.tsx";
+import "./index.css";
+import HomePage from "./pages/HomePage.tsx";
+import PlayerSetup from "./pages/PlayerSetup.tsx";
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/setup/:mode" element={<PlayerSetup />} />
+        <Route path="/game" element={<App />} />
+      </Routes>
+    </BrowserRouter>
   </StrictMode>,
-)
+);
