@@ -1,22 +1,25 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./App.css";
 import LudoBoard from "./components/Board/BoardGrid";
 import Token from "./components/Board/Token";
 import Dice from "./components/Game/Dice";
 import WinnerModal from "./components/Game/WinnerModal";
+import ConfirmModal from "./components/UI/ConfirmModal";
 import SoundControls from "./components/UI/SoundControls";
 import {
-  BASE_POSITIONS,
-  GLOBAL_PATH,
-  HOME_PATHS,
-  START_INDEX,
+    BASE_POSITIONS,
+    GLOBAL_PATH,
+    HOME_PATHS,
+    START_INDEX,
 } from "./constants/coordinates.ts";
 import { useGameLogics } from "./hooks/useGameLogics";
 import { useSound } from "./hooks/useSound";
 import type { PlayerColor } from "./types/index";
 
 function App() {
+  const navigate = useNavigate();
   const {
     gameState,
     handleRollDice,
@@ -26,6 +29,7 @@ function App() {
     getMovableTokenIds,
   } = useGameLogics();
   const [showWinner, setShowWinner] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // Sound system
   const { playSound, isMuted, toggleMute, volume, setVolume } = useSound();
@@ -106,6 +110,14 @@ function App() {
     }
   }, [gameState.winners, showWinner]);
 
+  const handleExitGame = () => {
+    // Optional: Clear game state on exit if you want fresh start every time
+    // localStorage.removeItem("ludoGameState");
+    // For now, let's keep it in case they want to 'resume',
+    // but the 'New Game' button in Setup will handle the clearing.
+    navigate("/");
+  };
+
   const getVisualPosition = (
     color: PlayerColor,
     tokenIndex: number,
@@ -144,6 +156,19 @@ function App() {
   };
 
   const getPlayerLabel = (color: PlayerColor): string => {
+    const player = gameState.playerConfigs?.find((p) => p.color === color);
+    if (player) {
+      const icon =
+        color === "RED"
+          ? "🔴"
+          : color === "GREEN"
+            ? "🟢"
+            : color === "YELLOW"
+              ? "🟡"
+              : "🔵";
+      return `${icon} ${player.name}`;
+    }
+    // Fallback
     const labels: Record<PlayerColor, string> = {
       RED: "🔴 RED",
       GREEN: "🟢 GREEN",
@@ -182,6 +207,16 @@ function App() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
+          {/* Back Button */}
+          <button
+            className="exit-button"
+            onClick={() => setShowExitConfirm(true)}
+            aria-label="Exit Game"
+            title="Exit Game"
+          >
+            ←
+          </button>
+
           <h1 className="app-title">
             🎲 LUDO <span className="title-accent">GAME</span>
           </h1>
@@ -200,30 +235,29 @@ function App() {
             <div className="board-wrapper-main">
               {/* Pass tokens as children inside LudoBoard */}
               <LudoBoard currentTurn={gameState.currentTurn}>
-                {(["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).map(
-                  (color) => {
-                    const movableTokenIds = getMovableTokenIds(
-                      color,
-                      gameState.diceValue,
-                    );
-                    return gameState.tokens[color].map((token) => (
-                      <Token
-                        key={`${color}-${token.id}`}
-                        color={color}
-                        position={getVisualPosition(
-                          color,
-                          token.id,
-                          token.position,
-                        )}
-                        onClick={() => handleTokenMove(token.id)}
-                        isMovable={
-                          color === gameState.currentTurn &&
-                          movableTokenIds.includes(token.id)
-                        }
-                      />
-                    ));
-                  },
-                )}
+                {gameState.playerConfigs?.map((player) => {
+                  const color = player.color;
+                  const movableTokenIds = getMovableTokenIds(
+                    color,
+                    gameState.diceValue,
+                  );
+                  return gameState.tokens[color].map((token) => (
+                    <Token
+                      key={`${color}-${token.id}`}
+                      color={color}
+                      position={getVisualPosition(
+                        color,
+                        token.id,
+                        token.position,
+                      )}
+                      onClick={() => handleTokenMove(token.id)}
+                      isMovable={
+                        color === gameState.currentTurn &&
+                        movableTokenIds.includes(token.id)
+                      }
+                    />
+                  ));
+                })}
               </LudoBoard>
             </div>
           </motion.div>
@@ -258,47 +292,46 @@ function App() {
               </div>
 
               <div className="stats-grid">
-                {(["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).map(
-                  (color) => {
-                    const stats = playerStats[color];
-                    const isCurrentTurn = color === gameState.currentTurn;
+                {gameState.playerConfigs?.map((player) => {
+                  const color = player.color;
+                  const stats = playerStats[color];
+                  const isCurrentTurn = color === gameState.currentTurn;
 
-                    return (
-                      <motion.div
-                        key={color}
-                        className={`stat-card ${isCurrentTurn ? "stat-active" : ""}`}
-                        style={{
-                          borderColor: getPlayerColor(color),
-                          boxShadow: isCurrentTurn
-                            ? `0 0 15px ${getPlayerColor(color)}`
-                            : "none",
-                        }}
-                        whileHover={{ scale: 1.02 }}
-                      >
-                        <div
-                          className="stat-color"
-                          style={{ backgroundColor: getPlayerColor(color) }}
-                        ></div>
-                        <div className="stat-info">
-                          <span className="stat-label">
-                            {getPlayerLabel(color)}
+                  return (
+                    <motion.div
+                      key={color}
+                      className={`stat-card ${isCurrentTurn ? "stat-active" : ""}`}
+                      style={{
+                        borderColor: getPlayerColor(color),
+                        boxShadow: isCurrentTurn
+                          ? `0 0 15px ${getPlayerColor(color)}`
+                          : "none",
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                    >
+                      <div
+                        className="stat-color"
+                        style={{ backgroundColor: getPlayerColor(color) }}
+                      ></div>
+                      <div className="stat-info">
+                        <span className="stat-label">
+                          {getPlayerLabel(color)}
+                        </span>
+                        <div className="stat-tokens">
+                          <span className="token-count">
+                            🏃 {stats.tokensActive}
                           </span>
-                          <div className="stat-tokens">
-                            <span className="token-count">
-                              🏃 {stats.tokensActive}
-                            </span>
-                            <span className="token-count">
-                              🏠 {stats.tokensCaptured}
-                            </span>
-                            <span className="token-count">
-                              🏁 {stats.tokensFinished}
-                            </span>
-                          </div>
+                          <span className="token-count">
+                            🏠 {stats.tokensCaptured}
+                          </span>
+                          <span className="token-count">
+                            🏁 {stats.tokensFinished}
+                          </span>
                         </div>
-                      </motion.div>
-                    );
-                  },
-                )}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </motion.div>
           </div>
@@ -349,7 +382,8 @@ function App() {
                   </motion.p>
                 ) : (
                   <p className="status-text">
-                    🎲 Waiting for {gameState.currentTurn} to roll
+                    🎲 Waiting for {getPlayerLabel(gameState.currentTurn)} to
+                    roll
                   </p>
                 )}
               </div>
@@ -397,7 +431,7 @@ function App() {
 
       {/* Winner Modal */}
       <AnimatePresence>
-        {showWinner && gameState.winners.length > 0 && (
+        {showGameWinner(showWinner, gameState.winners) && (
           <WinnerModal
             winner={gameState.winners[gameState.winners.length - 1]}
             rank={gameState.winners.length}
@@ -405,9 +439,21 @@ function App() {
             onReset={resetGame}
           />
         )}
+        {showExitConfirm && (
+          <ConfirmModal
+            title="Exit Game?"
+            message="Are you sure you want to quit? Your current game progress may be saved, but you will return to the home screen."
+            onConfirm={handleExitGame}
+            onCancel={() => setShowExitConfirm(false)}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
+}
+
+function showGameWinner(showWinner: boolean, winners: PlayerColor[]) {
+  return showWinner && winners.length > 0;
 }
 
 export default App;

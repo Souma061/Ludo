@@ -39,7 +39,10 @@ export default function PlayerSetup() {
   };
 
   const handleStartGame = () => {
-    // Store player configuration in localStorage or pass via state
+    // Clear previous game state to ensure fresh start with new config
+    localStorage.removeItem("ludoGameState");
+
+    // Store player configuration
     localStorage.setItem("gameMode", gameMode);
     localStorage.setItem(
       "playerConfig",

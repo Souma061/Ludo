@@ -60,6 +60,35 @@
   letter-spacing: 0.05em;
 }
 
+.exit-button {
+  position: fixed;
+  top: 1rem;
+  left: 80px; /* Right of hamburger menu (approx 16px + 50px + gap) */
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.5rem;
+  z-index: 102; /* Above hamburger and other elements */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.exit-button:hover {
+  background: rgba(239, 68, 68, 0.9);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: white;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+}
+
 /* Game Layout - Flex container that fills remaining space */
 .game-layout {
   display: flex;
@@ -675,5 +704,135 @@
 
   .hamburger-line {
     width: 22px;
+  }
+
+  /* Fix for Mobile Visibility */
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 180px; /* Space for fixed bottom controls */
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .board-area {
+    order: 1;
+    height: auto;
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+  }
+
+  .board-wrapper-main {
+    /* Slightly smaller to fit better */
+    width: min(85vw, 400px);
+    height: min(85vw, 400px);
+  }
+
+  /* Fixed Bottom Control Bar */
+  .control-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+    max-height: 180px;
+    background: rgba(15, 23, 42, 0.96);
+    backdrop-filter: blur(20px);
+    border-radius: 20px 20px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: none;
+    z-index: 50;
+
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px;
+    gap: 12px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.6);
+
+    order: 10; /* Ensure on top effectively */
+  }
+
+  /* Horizontal layout for items in control panel */
+  .control-section {
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .control-title {
+    display: none; /* Hide titles to save space */
+  }
+
+  .dice-display {
+    width: 50px;
+    height: 50px;
+    margin: 0;
+  }
+
+  .dice-value {
+    font-size: 1.4rem;
+  }
+
+  .status-info {
+    font-size: 0.75rem;
+    max-width: 100px;
+    text-align: left;
+  }
+
+  .status-text {
+    line-height: 1.2;
+  }
+
+  .reset-btn {
+    width: auto;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .winners-list {
+    position: absolute;
+    bottom: 100%;
+    right: 10px;
+    background: rgba(15, 23, 42, 0.9);
+    margin-bottom: 10px;
+    width: max-content;
+  }
+
+  /* Dice mobile adjustments */
+  .dice-container {
+    flex-direction: row !important;
+    gap: 0 !important;
+  }
+
+  .dice-scene {
+    transform: scale(0.5);
+    margin: -20px -10px !important;
+  }
+
+  .dice-button {
+    padding: 8px 16px !important;
+    font-size: 0.8rem !important;
+    white-space: nowrap;
+  }
+}
+
+/* Small Mobile Override */
+@media (max-width: 480px) {
+  .board-wrapper-main {
+    width: min(90vw, 320px);
+    height: min(90vw, 320px);
+  }
+
+  .app-title {
+    font-size: 1.2rem;
+  }
+
+  .control-panel {
+    padding: 10px 8px;
+    gap: 8px;
   }
 }

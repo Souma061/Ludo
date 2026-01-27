@@ -45,7 +45,7 @@ const Dice: React.FC<DiceProps> = ({ onRoll, disabled, showCube = true }) => {
   };
 
   return (
-    <div className="relative flex flex-col items-center gap-6">
+    <div className="dice-container relative flex flex-col items-center gap-6">
       {/* Glow effect during rolling */}
       {isRolling && <div className="dice-glow"></div>}
 

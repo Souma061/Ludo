@@ -16,13 +16,27 @@ export interface PlayerStats {
   tokensCaptured: number;
 }
 
+export interface PlayerConfig {
+  name: string;
+  color: PlayerColor;
+  isAI: boolean;
+}
+
 const INITIAL_TOKENS = [0, 1, 2, 3].map((id) => ({
   id,
   position: -1,
   status: "BASE" as const,
 }));
 
-interface LegacyGameState {
+// Default 4 players if nothing is configured
+const DEFAULT_PLAYERS: PlayerConfig[] = [
+  { name: "Player 1", color: "RED", isAI: false },
+  { name: "Player 2", color: "GREEN", isAI: false },
+  { name: "Player 3", color: "YELLOW", isAI: false },
+  { name: "Player 4", color: "BLUE", isAI: false },
+];
+
+export interface GameState {
   currentTurn: PlayerColor;
   diceValue: number | null;
   tokens: { [key in PlayerColor]: TokenState[] };
@@ -30,23 +44,42 @@ interface LegacyGameState {
   winners: PlayerColor[];
   gameStatus: GameStatus;
   lastMoveTime: number;
+  playerConfigs: PlayerConfig[];
 }
 
 export const useGameLogics = () => {
-  const [gameState, setGameState] = useState<LegacyGameState>(() => {
-    // Try to load game state from localStorage
+  const [gameState, setGameState] = useState<GameState>(() => {
+    // 1. Try to load ACTIVE player config (who is playing?)
+    let loadedConfig = DEFAULT_PLAYERS;
+    try {
+      const configStr = localStorage.getItem("playerConfig");
+      if (configStr) {
+        loadedConfig = JSON.parse(configStr);
+      }
+    } catch (e) {
+      console.warn("Error loading player config", e);
+    }
+
+    // 2. Try to load SAVED GAME state
     try {
       const savedState = localStorage.getItem("ludoGameState");
       if (savedState) {
-        return JSON.parse(savedState);
+        const parsed = JSON.parse(savedState);
+        // Merge the config in case it changed (though usually we'd only load state if resuming)
+        // For now, if we have a saved state, we assume it matches the current session intentions
+        // OR we overwrite the playerConfigs with what we just loaded to be safe.
+        return {
+          ...parsed,
+          playerConfigs: loadedConfig,
+        };
       }
     } catch (error) {
       console.warn("Failed to load saved game state:", error);
     }
 
-    // Default initial state
+    // 3. Default Initial State
     return {
-      currentTurn: "RED",
+      currentTurn: loadedConfig[0].color, // Start with first configured player
       diceValue: null,
       tokens: {
         RED: [...INITIAL_TOKENS],
@@ -58,6 +91,7 @@ export const useGameLogics = () => {
       winners: [],
       gameStatus: "PLAYING",
       lastMoveTime: 0,
+      playerConfigs: loadedConfig,
     };
   });
 
@@ -70,15 +104,28 @@ export const useGameLogics = () => {
     }
   }, [gameState]);
 
+
+
   // --- HELPER: Switch Turn ---
   const switchTurn = useCallback(() => {
-    const turns: PlayerColor[] = ["RED", "GREEN", "YELLOW", "BLUE"];
     setGameState((prev) => {
-      const currentIndex = turns.indexOf(prev.currentTurn);
-      const nextIndex = (currentIndex + 1) % turns.length;
+      const activeColors = prev.playerConfigs.map((p) => p.color);
+      const currentIndex = activeColors.indexOf(prev.currentTurn);
+
+      // Calculate next index, skipping winners?
+      // Traditional Ludo: Winners might drop out, or play until 3 finish.
+      // For now, simple cycle.
+      const nextIndex = (currentIndex + 1) % activeColors.length;
+      const nextColor = activeColors[nextIndex];
+
+      // Skip players who have already won (if we want that behavior)
+      // Usually in Ludo, you keep cycling until only one is left?
+      // Let's keep simple cycle for now, but if we wanted to skip winners:
+      // while (prev.winners.includes(nextColor) && prev.winners.length < activeColors.length - 1) { ... }
+
       return {
         ...prev,
-        currentTurn: turns[nextIndex],
+        currentTurn: nextColor,
         diceValue: null,
         sixesStreak: 0,
       };
@@ -179,7 +226,7 @@ export const useGameLogics = () => {
       // 1. Calculate New Position
       if (newStatus === "BASE") {
         if (dice === 6) {
-          newPosition = 0; // ✅ FIX: Always 0 (Start of path)
+          newPosition = 0; // Start of path
           newStatus = "ACTIVE";
         } else {
           return prev;
@@ -204,34 +251,38 @@ export const useGameLogics = () => {
 
       let opponentKilled = false;
 
-      // Only check collision if we are on the main board (not home run) and not in a Safe Zone
+      // Only check collision if we are on the main board
       if (globalPos !== -1 && !isSafeZone(globalPos)) {
-        (["RED", "GREEN", "YELLOW", "BLUE"] as PlayerColor[]).forEach(
-          (oppColor) => {
-            if (oppColor === currentColor) return;
+        // Iterate only through ACTIVE players/colors for collision
+        // (Though iterating all colors is technically safe as inactive ones stay in base,
+        //  but good to be consistent)
+        const activeColors = prev.playerConfigs.map((p) => p.color);
 
-            const oppTokens = [...newTokens[oppColor]];
-            // Find tokens at the exact same spot
-            const victims = oppTokens.filter((t) => {
-              if (t.status !== "ACTIVE" || t.position >= HOME_STRETCH_START)
-                return false;
-              const oppOffset = START_INDEX[oppColor];
-              const oppGlobal = (oppOffset + t.position) % BOARD_PATH_LENGTH;
-              return oppGlobal === globalPos;
-            });
+        activeColors.forEach((oppColor) => {
+          if (oppColor === currentColor) return;
 
-            // Kill logic: If exactly 1 token is there (not a stack)
-            if (victims.length === 1) {
-              const victimIndex = oppTokens.indexOf(victims[0]);
-              oppTokens[victimIndex] = {
-                ...oppTokens[victimIndex],
-                position: -1,
-                status: "BASE",
-              };
-              newTokens[oppColor] = oppTokens;
-              opponentKilled = true;
-            }
-          },
+          const oppTokens = [...newTokens[oppColor]];
+          // Find tokens at the exact same spot
+          const victims = oppTokens.filter((t) => {
+            if (t.status !== "ACTIVE" || t.position >= HOME_STRETCH_START)
+              return false;
+            const oppOffset = START_INDEX[oppColor];
+            const oppGlobal = (oppOffset + t.position) % BOARD_PATH_LENGTH;
+            return oppGlobal === globalPos;
+          });
+
+          // Kill logic: If exactly 1 token is there
+          if (victims.length === 1) {
+            const victimIndex = oppTokens.indexOf(victims[0]);
+            oppTokens[victimIndex] = {
+              ...oppTokens[victimIndex],
+              position: -1,
+              status: "BASE",
+            };
+            newTokens[oppColor] = oppTokens;
+            opponentKilled = true;
+          }
+        },
         );
       }
 
@@ -248,18 +299,29 @@ export const useGameLogics = () => {
         ? [...prev.winners, currentColor]
         : prev.winners;
 
+      // Check for Game Over (if all but one finished, or all finished)
+      // For now simple checking:
+      const totalPlayers = prev.playerConfigs.length;
+      let gameStatus: GameStatus = prev.gameStatus;
+      if (winners.length >= totalPlayers - 1 && totalPlayers > 1) {
+        // If 3 out of 4 move, game is technically done for the last one usually?
+        // Or just let them play. Let's finish when all finish for now.
+        if (winners.length === totalPlayers) {
+          gameStatus = "FINISHED";
+        }
+      }
+
       // 4. Determine Next Turn
-      // Bonus turn if: Rolled 6 OR Killed Opponent
       const bonusTurn = dice === 6 || opponentKilled;
 
       let nextTurn = currentColor;
       let nextStreak = prev.sixesStreak;
 
       if (!bonusTurn) {
-        const turns: PlayerColor[] = ["RED", "GREEN", "YELLOW", "BLUE"];
-        const currentIndex = turns.indexOf(currentColor);
-        const nextIndex = (currentIndex + 1) % turns.length;
-        nextTurn = turns[nextIndex];
+        const activeColors = prev.playerConfigs.map((p) => p.color);
+        const currentIndex = activeColors.indexOf(currentColor);
+        const nextIndex = (currentIndex + 1) % activeColors.length;
+        nextTurn = activeColors[nextIndex];
         nextStreak = 0;
       }
 
@@ -268,9 +330,9 @@ export const useGameLogics = () => {
         tokens: newTokens,
         winners,
         currentTurn: nextTurn,
-        diceValue: null, // Reset dice
+        diceValue: null,
         sixesStreak: nextStreak,
-        gameStatus: winners.length === 4 ? "FINISHED" : "PLAYING",
+        gameStatus: gameStatus,
         lastMoveTime: Date.now(),
       };
     });
@@ -321,8 +383,19 @@ export const useGameLogics = () => {
   );
 
   const resetGame = useCallback(() => {
+    // Re-read config on reset
+    let loadedConfig = DEFAULT_PLAYERS;
+    try {
+      const configStr = localStorage.getItem("playerConfig");
+      if (configStr) {
+        loadedConfig = JSON.parse(configStr);
+      }
+    } catch {
+      // Ignore
+    }
+
     setGameState({
-      currentTurn: "RED",
+      currentTurn: loadedConfig[0].color,
       diceValue: null,
       tokens: {
         RED: [...INITIAL_TOKENS],
@@ -334,6 +407,7 @@ export const useGameLogics = () => {
       winners: [],
       gameStatus: "PLAYING",
       lastMoveTime: Date.now(),
+      playerConfigs: loadedConfig,
     });
   }, []);
 
